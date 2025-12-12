@@ -101,10 +101,35 @@ def fuzzy_predict(g, b, a):
     sim.compute()
     return sim.output['risk']
 
-def hybrid_predict(row):
+def hybrid_predict(data):
+    # Urutan fitur sesuai model training
+    feature_order = [
+        'Pregnancies',
+        'Glucose',
+        'BloodPressure',
+        'SkinThickness',
+        'Insulin',
+        'BMI',
+        'DiabetesPedigreeFunction',
+        'Age'
+    ]
+
+    # Susun ulang data Streamlit sesuai urutan fitur model
+    row = [data[f] for f in feature_order]
+
+    # ML prediction
     ml_score = model.predict_proba([row])[0][1] * 100
-    fuzzy_score = fuzzy_predict(row[1], row[4], row[7])
-    return (0.7 * ml_score) + (0.3 * fuzzy_score)
+
+    # Fuzzy prediction
+    glucose = data['Glucose']
+    bmi     = data['BMI']
+    age     = data['Age']
+    fuzzy_score = fuzzy_predict(glucose, bmi, age)
+
+    # Hybrid score (bobot bisa kamu ubah)
+    hybrid = (0.7 * ml_score) + (0.3 * fuzzy_score)
+
+    return ml_score, fuzzy_score, hybrid
 
 # ===========================
 # 4. UI INPUT PREMIUM
